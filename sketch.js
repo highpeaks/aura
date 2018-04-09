@@ -4,7 +4,7 @@ var prevFrame = [];
 var c;
 var counter = true;
 var vscale = 10;
-var threshold = 60;
+var threshold = 70;
 var xvals = [];
 var yvals = [];
 var target, v;
@@ -37,18 +37,21 @@ function draw() {
 
 	background(35,39,42);
 
-	push();
-	let ratio = width/height;
-	for (let i = 0; i < height; i = i + 15){
-		noStroke();
-		fill(153,170,181,2);
-		rectMode(CENTER);
-		rect(width * 0.5, height * 0.5, i * ratio, i)
-	}
-	pop();
+  // push();
+  // stroke(255);
+  // strokeWeight(3);
+  // noFill();
+  // beginShape();
+  // vertex(0,0);
+  // vertex(width, 0);
+  // vertex(width, height);
+  // vertex(0, height);
+  // endShape(CLOSE);
+  // pop();
 
 	vision();
-
+  // target.x = mouseX;
+  // target.y = mouseY;
   v.seek(target);
   v.update();
   v.show();
@@ -63,52 +66,68 @@ class vehicle {
 		this.position = createVector(width * 0.5, height * 0.5);
 		this.maxspeed = 10;
 		this.maxforce = 1;
+    this.seeking = true;
 	}
 
 	seek(t){
 
-		this.target = t;
+    this.target = t;
 
-		// A vector pointing from the position to the target
-    this.desired = this.target.sub(this.position);
-    this.d = this.desired.mag();
+    // if (this.target.x >= 20 && this.target.x <= width - 20 && this.target.y >= 20 && this.target.y <= height - 20){
+    //   this.seeking = true;
+    // }
 
-    // Slow down when close
-    this.m = map(this.d,0,500,0,this.maxspeed);
-    this.desired.setMag(this.m);
+    if (this.seeking){
 
-    // Scale to maximum speed
-    // this.desired.setMag(this.maxspeed);
+      // A vector pointing from the position to the target
+      this.desired = this.target.sub(this.position);
 
+      this.d = this.desired.mag();
 
-    // Steering = Desired minus velocity
-    this.steer = this.desired.sub(this.velocity);
+      // Slow down when close
+      this.m = map(this.d, 0, 50, 0, this.maxspeed);
+      this.desired.setMag(this.m);
 
-		// Limit to maximum steering force
-    this.steer.limit(this.maxforce);
-		this.acceleration.add(this.steer);
+      // Steering = Desired minus velocity
+      this.steer = this.desired.sub(this.velocity);
 
+      // Limit to maximum steering force
+      this.steer.limit(this.maxforce);
+      this.acceleration.add(this.steer);
+    }
   }
 
-	// Method to update position
 	update(){
+
 		// Update velocity
-		this.velocity.add(this.acceleration);
+    this.velocity.add(this.acceleration);
+
 		// Limit speed
 		this.velocity.limit(this.maxspeed);
+
+    // // Check Edges
+    // if (this.position.x <= 0 || this.position.x >= width){
+    //   this.seeking = false;
+    //   this.velocity.x *= -3;
+    // }
+    //
+    // if (this.position.y <= 0 || this.position.y >= height){
+    //   this.seeking = false;
+    //   this.velocity.y *= -3;
+    // }
+
+    // Apply to Vehicle
 		this.position.add(this.velocity);
-		// Reset accelerationelertion to 0 each cycle
-		this.acceleration.mult(0);
-	}
+
+    // Reset accelerationelertion to 0 each cycle
+    this.acceleration.mult(0);
+  }
 
 	show(){
-    this.r = map(this.m, 0, this.maxspeed, 50, 10);
-		fill(114,137,218,100);
-		noStroke();
-		ellipse(this.position.x, this.position.y, this.r);
+    noStroke();
+    fill(204, 255, 0);
+    ellipse(this.position.x, this.position.y, 20);
 	}
-
-
 }
 
 
@@ -150,7 +169,7 @@ function vision(){
 				let d = distSq(r1,g1,b1,r2,g2,b2);
 
 				if(d >= threshold * threshold) {
-					fill(35,39,42,bright);
+					fill(44,47,51);
 					noStroke();
 					rect(x*vscale, y*vscale, vscale, vscale);
 					xvals.push(x*vscale);
@@ -160,12 +179,25 @@ function vision(){
 		}
 	}
 
-	let xl = xvals.length;
-	let yl = yvals.length;
+  if (xvals.length > 5) {
+    target.x = ss.mean(xvals);
+    // devX = ss.standardDeviation(xvals);
+    // for (let j = 0; j < xvals.length; j++){
+    //   if (xvals[j] > devX + target.x || xvals[j] < target.x - devX){
+    //     target.x = ss.subtractFromMean(target.x, xvals.length, xvals[j]);
+    //   }
+    // }
+  }
 
-  target.x = (xvals.reduce(function(a, b) { return a + b; }, 0)) / xl;
-	target.y = (yvals.reduce(function(a, b) { return a + b; }, 0)) / yl;
-
+  if (yvals.length > 5) {
+    target.y = ss.mean(yvals);
+    // devY = ss.standardDeviation(yvals);
+    // for (let k = 0; k < xvals.length; k++){
+    //   if (yvals[k] > devY + target.y || yvals[k] < target.y - devY){
+    //     target.y = ss.subtractFromMean(target.y, yvals.length, yvals[k]);
+    //   }
+    // }
+  }
 
 	if (xvals.length > 2000){
 		xvals.splice(0,500);
