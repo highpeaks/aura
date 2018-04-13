@@ -1,0 +1,29 @@
+{
+  "name": "auras",
+  "version": "1.0.0",
+  "description": "Lightweight motion tracking app",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/highpeaks/auras.git"
+  },
+  "keywords": [
+    "motion",
+    "tracking",
+    "vision",
+    "auras",
+    "aura"
+  ],
+  "author": "High Peaks",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/highpeaks/auras/issues"
+  },
+  "homepage": "https://github.com/highpeaks/auras#readme",
+  "dependencies": {
+    "express": "^4.16.3"
+  }
+}
